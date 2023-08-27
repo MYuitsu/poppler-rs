@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_double, c_int};
@@ -59,13 +60,15 @@ impl PopplerDocument {
 
         Ok(PopplerDocument(doc))
     }
-    pub fn get_title(&self) -> Option<String> {
+    pub fn get_title(&self) -> Result<String, Box<dyn Error>> {
         unsafe {
             let ptr: *mut c_char = ffi::poppler_document_get_title(self.0);
             if ptr.is_null() {
-                None
+                Err("Title not found".into())
             } else {
-                CString::from_raw(ptr).into_string().ok()
+                let c_str = CString::from_raw(ptr);
+                let title = c_str.into_string().map_err(|_| "Failed to convert title to String")?;
+                Ok(title)
             }
         }
     }
