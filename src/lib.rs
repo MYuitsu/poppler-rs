@@ -60,7 +60,17 @@ impl PopplerDocument {
 
         Ok(PopplerDocument(doc))
     }
-    pub fn get_title(&self) -> Result<String, Box<dyn Error>> {
+    pub fn get_title(&self) -> Option<String> {
+        unsafe {
+            let ptr: *mut c_char = ffi::poppler_document_get_title(self.0);
+            if ptr.is_null() {
+                None
+            } else {
+                CString::from_raw(ptr).into_string().ok()
+            }
+        }
+    }
+    pub fn get_title_string(&self) -> Result<String, Box<dyn Error>> {
         unsafe {
             let ptr: *mut c_char = ffi::poppler_document_get_title(self.0);
             if ptr.is_null() {
